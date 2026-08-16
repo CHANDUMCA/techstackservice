@@ -1,0 +1,147 @@
+Welcome to Apache Kafka! Learning it step-by-step is going to be fun.
+Before we write any Java code, let's understand the core concepts in simple terms:
+1.Producer: The application that sends messages (events).
+2.Consumer: The application that receives/reads messages.
+3.Topic: The category or folder name where messages are stored (e.g., a topic named my-topic).
+4.Broker: The Kafka server itself that manages the topics and stores messages.
+Our Step-by-Step Kafka Roadmap:
+Step 1: Start Kafka locally (using Docker).
+Step 2: Add the Kafka dependency to your pom.xml.
+Step 3: Configure Kafka settings in application.properties.
+Step 4: Create a Producer class to send messages to a Kafka topic.
+Step 5: Create a Consumer class to listen and read messages from the topic.
+Step 6: Create a REST controller to trigger sending messages and verify they are consumed live.
+Step 1: Start Kafka using Docker
+I noticed in your Docker Desktop screenshot earlier that you already have a stopped container named kafka.
+
+Try starting that existing kafka container in Docker Desktop (by clicking the play button next to it).
+If it starts successfully, great!
+If it fails or you want a fresh setup, we can run a single-node Kafka container using this command in your terminal:
+cmd
+docker run -d --name local-kafka -p 9092:9092 apache/kafka:latest
+Let me know if you started your existing kafka container or if you ran the command to start a new one!
+
+That is a perfect real-world architecture! Having one app as the Producer and another app as the Consumer is exactly how microservices communicate in production.
+
+Since we are practicing step-by-step, let's start with the Producer inside your current techstackservice project.
+
+Step 2: Add the Kafka Dependency (Producer side)
+Open the 
+
+pom.xml
+ of your techstackservice project and add the Spring Boot Starter Kafka dependency inside your <dependencies> block.
+
+Note: Since we are using Log4j2, we must exclude the default logging starter from Kafka as well to avoid conflicts.
+
+Add this XML block near the bottom of your dependencies (e.g., right next to your Log4j2 starter)
+
+
+		<!-- Add Kafka Starter (with logging excluded for Log4j2) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-kafka</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+Step 3: Configure Kafka settings in application.properties.
+
+Step 4: Create the Producer Service Class (KafkaProducerService).
+
+We will create a service class that uses Spring Boot's built-in KafkaTemplate<String, String>. This template acts like the connection manager to write messages to our Kafka topic. We will also retrieve our custom topic name (practice-topic) from application.properties using Spring's @Value annotation.
+
+What to do:
+Create a file named KafkaProducerService.java inside the src/main/java/com/sunrize/it/kafka package (absolute path: src/main/java/com/sunrize/it/kafka/KafkaProducerService.java).
+
+Put the following code inside it:
+
+java
+package com.sunrize.it.kafka;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+@Slf4j
+@Service
+public class KafkaProducerService {
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+    @Value("${app.kafka.topic}")
+    private String topicName;
+    /**
+     * Publish a message to the configured Kafka topic.
+     */
+    public void sendMessage(String message) {
+        log.info("Sending message to Kafka Topic '{}': {}", topicName, message);
+        kafkaTemplate.send(topicName, message);
+        log.debug("Message sent successfully to topic: {}", topicName);
+    }
+}
+Save the file and let me know once it is created!
+
+
+Step 5: Create a REST Controller (KafkaController).
+
+We need an endpoint to trigger the message publication. We will expose:
+
+POST /api/kafka/publish?message=YourMessage (Standard for writing data).
+GET /api/kafka/publish?message=YourMessage (Super easy to test directly in your browser address bar).
+What to do:
+Create a file named KafkaController.java inside the src/main/java/com/sunrize/it/kafka package (absolute path: src/main/java/com/sunrize/it/kafka/KafkaController.java).
+
+Put the following code inside it:
+package com.sunrize.it.kafka;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/kafka")
+public class KafkaController {
+
+    @Autowired
+    private KafkaProducerService producerService;
+
+    @PostMapping("/publish")
+    public String publishMessage(@RequestParam String message) {
+        log.info("Received POST request to publish message to Kafka: '{}'", message);
+        producerService.sendMessage(message);
+        return "Message '" + message + "' published to Kafka successfully!";
+    }
+
+    @GetMapping("/publish")
+    public String publishMessageGet(@RequestParam String message) {
+        log.info("Received GET request to publish message to Kafka: '{}'", message);
+        producerService.sendMessage(message);
+        return "Message '" + message + "' published to Kafka successfully!";
+    }
+}
+
+
+
+
+Step 1: Run the Console Consumer in your Terminal
+docker exec -it kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic practice-topic --from-beginning
+
+
+This command launches the built-in Kafka consumer inside the container. It will listen to practice-topic and print any messages it receives. Keep this window open.
+
+Step 2: Start your techstackservice application
+Run the application in STS (or from your main terminal):
+
+cmd
+mvnw spring-boot:run
+Step 3: Publish a Message
+Once the app starts up successfully, open your browser and navigate to: 👉 http://localhost:8080/api/kafka/publish?message=HelloLocalKafka
+
+Step 4: Check the Console Consumer
+Check the terminal window from Step 1. You should see the message: HelloLocalKafka appear on the screen!
+
+Give this a run and let me know if the message pops up in your console consumer terminal!

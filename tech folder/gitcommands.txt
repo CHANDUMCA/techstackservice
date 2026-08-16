@@ -3,6 +3,9 @@
 Here is the description and usage of the Git commands listed in this reference:
 
 --------------------------------------------------------------------------------
+git init
+git remote add origin https://github.com/CHANDUMCA/techstackservicecon.git
+git branch -M main
 
 1. git clone -b <branch_name> <repository_url>
    Description: Clones (downloads) only a specific branch from a remote repository (like GitHub) to your local machine, instead of downloading the default branch.
