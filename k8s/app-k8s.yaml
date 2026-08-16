@@ -25,6 +25,14 @@ spec:
           value: "redis-service"
         - name: SPRING_DATA_REDIS_PORT
           value: "6379"
+        volumeMounts:
+        - name: log-volume
+          mountPath: /app/logs
+      volumes:
+      - name: log-volume
+        hostPath:
+          path: /data/logs
+          type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service

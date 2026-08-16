@@ -11,4 +11,4 @@ COPY target/techstackservice-0.0.1.war app.war
 EXPOSE 8080
 
 # Run the Spring Boot application
-ENTRYPOINT ["java", "-jar", "app.war"]
+ENTRYPOINT ["java", "-DLOG_PATH=/app/logs", "-jar", "app.war"]
