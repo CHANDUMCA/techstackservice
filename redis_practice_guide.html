@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot + Redis + Kubernetes + Log4j2 Reference Guide</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #24292f;
+            --primary-color: #0969da;
+            --secondary-color: #57606a;
+            --border-color: #d0d7de;
+            --code-bg: #f6f8fa;
+            --badge-bg: #ddf4ff;
+            --badge-text: #0969da;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            color: #1f2328;
+        }
+
+        h2 {
+            font-size: 1.6em;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        h3 {
+            font-size: 1.25em;
+            color: #1f2328;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        p, li {
+            color: #24292f;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 85%;
+            background-color: var(--code-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            color: #cf222e;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: auto;
+            margin: 12px 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 90%;
+            color: #24292f;
+        }
+
+        .alert {
+            background-color: #fff8c5;
+            border: 1px solid #d4a72c;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            color: #765a00;
+        }
+
+        .alert-info {
+            background-color: #ddf4ff;
+            border: 1px solid #54aeff;
+            color: #0969da;
+        }
+
+        .badge {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .roadmap-card {
+            background-color: #f6f8fa;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .roadmap-title {
+            margin-top: 0;
+            color: #1f2328;
+            font-weight: bold;
+            font-size: 1.2em;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .phase-title {
+            font-weight: bold;
+            color: #24292f;
+            margin-top: 14px;
+            display: block;
+        }
+
+        ol, ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* Syntax Highlighting CSS */
+        .hl-kw { color: #d73a49; font-weight: bold; }
+        .hl-type { color: #6f42c1; }
+        .hl-str { color: #032f62; }
+        .hl-cmt { color: #6a737d; font-style: italic; }
+        .hl-anno { color: #e36209; }
+        .hl-xml-tag { color: #000080; }
+        .hl-xml-attr { color: #0000ff; }
+        .hl-xml-val { color: #008000; }
+
+        @media print {
+            body {
+                margin: 20px;
+                max-width: 100%;
+                font-size: 13px;
+            }
+            pre {
+                page-break-inside: avoid;
+                word-wrap: break-word;
+                white-space: pre-wrap;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            .roadmap-card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Spring Boot + Redis + Kubernetes + Log4j2<br>Master Reference Guide</h1>
+
+    <div class="alert alert-info">
+        <strong>💡 About this Document:</strong> This is a complete, step-by-step master reference guide. It contains all code snippets, directory mappings, configuration files, and terminal commands needed to build, configure, dockerize, and deploy a logging-enabled Spring Boot Redis app to Kubernetes.
+    </div>
+
+    <!-- roadmaps -->
+    <div class="roadmap-card">
+        <h3 class="roadmap-title">🗺️ Complete Roadmap Overview</h3>
+        
+        <span class="phase-title">🚀 Phase 1: Local Spring Boot & Redis Setup</span>
+        <ol>
+            <li>Create the Spring Boot maven project with Web, H2, and JPA dependencies.</li>
+            <li>Add the Redis Starter dependency in <code>pom.xml</code>.</li>
+            <li>Configure Redis connection details in <code>application.properties</code>.</li>
+            <li>Create the Java package <code>com.sunrize.it.redis</code>.</li>
+            <li>Implement the Java configuration class <code>RedisConfig.java</code>.</li>
+            <li>Implement the utility service class <code>RedisService.java</code>.</li>
+            <li>Create the REST controller <code>RedisController.java</code> to test set/get APIs.</li>
+        </ol>
+
+        <span class="phase-title">🪵 Phase 2: Log4j2 Logging & Local Externalization</span>
+        <ol start="8">
+            <li>Exclude default logging (Logback) from the starters in <code>pom.xml</code> and add Log4j2.</li>
+            <li>Create <code>log4j2-spring.xml</code> to write logs to a dynamic directory (<code>LOG_PATH</code>).</li>
+            <li>Configure annotation processing in STS for Lombok and add <code>@Slf4j</code> to <code>RedisController.java</code>.</li>
+            <li>Verify local log output in <code>D:\GIT\logs</code> by running the app with <code>-DLOG_PATH</code>.</li>
+        </ol>
+
+        <span class="phase-title">☸️ Phase 3: Dockerization & Kubernetes Deployment</span>
+        <ol start="12">
+            <li>Create a <code>Dockerfile</code> that passes <code>-DLOG_PATH=/app/logs</code>.</li>
+            <li>Build the Docker image locally and load it into Minikube's cache.</li>
+            <li>Configure Kubernetes manifests for Redis (<code>redis-k8s.yaml</code>).</li>
+            <li>Configure Kubernetes manifests for the application (<code>app-k8s.yaml</code>) with volume mounts.</li>
+            <li>Mount the Windows directory to Minikube, deploy the cluster, and test APIs.</li>
+        </ol>
+    </div>
+
+    <h2>📋 Prerequisites</h2>
+    <ul>
+        <li><strong>Java JDK 21</strong> installed and environment variables configured.</li>
+        <li><strong>Maven 3.x</strong> (or Maven Wrapper <code>mvnw</code> included in project).</li>
+        <li><strong>Docker Desktop for Windows</strong> (configured to use Windows containers or Linux containers).</li>
+        <li><strong>Minikube</strong> and <strong>kubectl</strong> command line tools.</li>
+        <li><strong>Spring Tool Suite (STS)</strong> or Eclipse IDE.</li>
+    </ul>
+
+    <hr>
+
+    <h2>🚀 Step 1: Spring Boot Project Creation</h2>
+    <p>The project was initialized as a Maven project with group ID <code>com.sunrizeit</code> and artifact ID <code>techstackservice</code>. The initial structure has the packages set up under <code>src/main/java/com/sunrize/it/</code>.</p>
+
+    <h3>Maven Dependencies (pom.xml)</h3>
+    <p>This is the final, complete version of the <code>pom.xml</code> file, incorporating the Redis starter, Lombok, H2 console, and the exclusions for default logging to use Log4j2:</p>
+    <pre class="highlight-xml"><code><span class="hl-xml-tag">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="hl-xml-tag">&lt;project</span> <span class="hl-xml-attr">xmlns</span>=<span class="hl-xml-val">"http://maven.apache.org/POM/4.0.0"</span> <span class="hl-xml-attr">xmlns:xsi</span>=<span class="hl-xml-val">"http://www.w3.org/2001/XMLSchema-instance"</span>
+	<span class="hl-xml-attr">xsi:schemaLocation</span>=<span class="hl-xml-val">"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"</span><span class="hl-xml-tag">&gt;</span>
+	<span class="hl-xml-tag">&lt;modelVersion&gt;</span>4.0.0<span class="hl-xml-tag">&lt;/modelVersion&gt;</span>
+	<span class="hl-xml-tag">&lt;parent&gt;</span>
+		<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+		<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-parent<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+		<span class="hl-xml-tag">&lt;version&gt;</span>4.1.0<span class="hl-xml-tag">&lt;/version&gt;</span>
+		<span class="hl-xml-tag">&lt;relativePath/&gt;</span>
+	<span class="hl-xml-tag">&lt;/parent&gt;</span>
+	<span class="hl-xml-tag">&lt;groupId&gt;</span>com.sunrizeit<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+	<span class="hl-xml-tag">&lt;artifactId&gt;</span>techstackservice<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+	<span class="hl-xml-tag">&lt;version&gt;</span>0.0.1<span class="hl-xml-tag">&lt;/version&gt;</span>
+	<span class="hl-xml-tag">&lt;packaging&gt;</span>war<span class="hl-xml-tag">&lt;/packaging&gt;</span>
+	<span class="hl-xml-tag">&lt;name&gt;</span>techstackservice<span class="hl-xml-tag">&lt;/name&gt;</span>
+
+	<span class="hl-xml-tag">&lt;properties&gt;</span>
+		<span class="hl-xml-tag">&lt;java.version&gt;</span>21<span class="hl-xml-tag">&lt;/java.version&gt;</span>
+	<span class="hl-xml-tag">&lt;/properties&gt;</span>
+
+	<span class="hl-xml-tag">&lt;dependencies&gt;</span>
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-h2console<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-data-jpa<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;exclusions&gt;</span>
+				<span class="hl-xml-tag">&lt;exclusion&gt;</span>
+					<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+					<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-logging<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+				<span class="hl-xml-tag">&lt;/exclusion&gt;</span>
+			<span class="hl-xml-tag">&lt;/exclusions&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-webmvc<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;exclusions&gt;</span>
+				<span class="hl-xml-tag">&lt;exclusion&gt;</span>
+					<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+					<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-logging<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+				<span class="hl-xml-tag">&lt;/exclusion&gt;</span>
+			<span class="hl-xml-tag">&lt;/exclusions&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-data-redis<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;exclusions&gt;</span>
+				<span class="hl-xml-tag">&lt;exclusion&gt;</span>
+					<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+					<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-logging<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+				<span class="hl-xml-tag">&lt;/exclusion&gt;</span>
+			<span class="hl-xml-tag">&lt;/exclusions&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-log4j2<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-devtools<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;scope&gt;</span>runtime<span class="hl-xml-tag">&lt;/scope&gt;</span>
+			<span class="hl-xml-tag">&lt;optional&gt;</span>true<span class="hl-xml-tag">&lt;/optional&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>com.h2database<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>h2<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;scope&gt;</span>runtime<span class="hl-xml-tag">&lt;/scope&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>com.oracle.database.jdbc<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>ojdbc11<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;scope&gt;</span>runtime<span class="hl-xml-tag">&lt;/scope&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.projectlombok<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>lombok<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;optional&gt;</span>true<span class="hl-xml-tag">&lt;/optional&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-tomcat<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;scope&gt;</span>provided<span class="hl-xml-tag">&lt;/scope&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-data-jpa-test<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;scope&gt;</span>test<span class="hl-xml-tag">&lt;/scope&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+		<span class="hl-xml-tag">&lt;dependency&gt;</span>
+			<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+			<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-starter-webmvc-test<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;scope&gt;</span>test<span class="hl-xml-tag">&lt;/scope&gt;</span>
+		<span class="hl-xml-tag">&lt;/dependency&gt;</span>
+	<span class="hl-xml-tag">&lt;/dependencies&gt;</span>
+
+	<span class="hl-xml-tag">&lt;build&gt;</span>
+		<span class="hl-xml-tag">&lt;plugins&gt;</span>
+			<span class="hl-xml-tag">&lt;plugin&gt;</span>
+				<span class="hl-xml-tag">&lt;groupId&gt;</span>org.springframework.boot<span class="hl-xml-tag">&lt;/groupId&gt;</span>
+				<span class="hl-xml-tag">&lt;artifactId&gt;</span>spring-boot-maven-plugin<span class="hl-xml-tag">&lt;/artifactId&gt;</span>
+			<span class="hl-xml-tag">&lt;/plugin&gt;</span>
+		<span class="hl-xml-tag">&lt;/plugins&gt;</span>
+	<span class="hl-xml-tag">&lt;/build&gt;</span>
+</project></code></pre>
+
+    <hr>
+
+    <h2>🚀 Phase 2: Local Redis Integration</h2>
+    <p>A package named <code>com.sunrize.it.redis</code> was created. Three main Java files were added to configure, map, and expose the Redis connection.</p>
+
+    <h3>1. Application Properties</h3>
+    <span class="badge">src/main/resources/application.properties</span>
+    <pre><code>spring.application.name=techstackservice
+spring.data.redis.host=localhost
+spring.data.redis.port=6379</code></pre>
+
+    <h3>2. Java Configuration Class</h3>
+    <span class="badge">RedisConfig.java</span>
+    <p>Uses <code>StringRedisSerializer</code> for keys and <code>GenericJacksonJsonRedisSerializer</code> for serializing values as readable JSON text in Redis.</p>
+    <pre class="highlight-java"><code><span class="hl-kw">package</span> com.sunrize.it.redis;
+
+<span class="hl-kw">import</span> org.springframework.context.annotation.Bean;
+<span class="hl-kw">import</span> org.springframework.context.annotation.Configuration;
+<span class="hl-kw">import</span> org.springframework.data.redis.connection.RedisConnectionFactory;
+<span class="hl-kw">import</span> org.springframework.data.redis.core.RedisTemplate;
+<span class="hl-kw">import</span> org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
+<span class="hl-kw">import</span> org.springframework.data.redis.serializer.StringRedisSerializer;
+
+<span class="hl-anno">@Configuration</span>
+<span class="hl-kw">public class</span> <span class="hl-type">RedisConfig</span> {
+
+    <span class="hl-anno">@Bean</span>
+    <span class="hl-kw">public</span> <span class="hl-type">RedisTemplate</span>&lt;<span class="hl-type">String</span>, <span class="hl-type">Object</span>&gt; redisTemplate(<span class="hl-type">RedisConnectionFactory</span> connectionFactory) {
+        <span class="hl-type">RedisTemplate</span>&lt;<span class="hl-type">String</span>, <span class="hl-type">Object</span>&gt; template = <span class="hl-kw">new</span> <span class="hl-type">RedisTemplate</span>&lt;&gt;();
+        template.setConnectionFactory(connectionFactory);
+        
+        <span class="hl-cmt">// Serialize keys as Strings</span>
+        template.setKeySerializer(<span class="hl-kw">new</span> <span class="hl-type">StringRedisSerializer</span>());
+        template.setHashKeySerializer(<span class="hl-kw">new</span> <span class="hl-type">StringRedisSerializer</span>());
+        
+        <span class="hl-cmt">// Serialize values as JSON</span>
+        <span class="hl-type">GenericJacksonJsonRedisSerializer</span> serializer = <span class="hl-type">GenericJacksonJsonRedisSerializer</span>.builder().build();
+        template.setValueSerializer(serializer);
+        template.setHashValueSerializer(serializer);
+        
+        template.afterPropertiesSet();
+        <span class="hl-kw">return</span> template;
+    }
+}</code></pre>
+
+    <h3>3. Redis Helper Service</h3>
+    <span class="badge">RedisService.java</span>
+    <p>Provides abstraction over <code>RedisTemplate</code> operations.</p>
+    <pre class="highlight-java"><code><span class="hl-kw">package</span> com.sunrize.it.redis;
+
+<span class="hl-kw">import</span> org.springframework.beans.factory.annotation.Autowired;
+<span class="hl-kw">import</span> org.springframework.data.redis.core.RedisTemplate;
+<span class="hl-kw">import</span> org.springframework.stereotype.Service;
+<span class="hl-kw">import</span> java.util.concurrent.TimeUnit;
+
+<span class="hl-anno">@Service</span>
+<span class="hl-kw">public class</span> <span class="hl-type">RedisService</span> {
+
+    <span class="hl-anno">@Autowired</span>
+    <span class="hl-kw">private</span> <span class="hl-type">RedisTemplate</span>&lt;<span class="hl-type">String</span>, <span class="hl-type">Object</span>&gt; redisTemplate;
+
+    <span class="hl-kw">public void</span> set(<span class="hl-type">String</span> key, <span class="hl-type">Object</span> value) {
+        redisTemplate.opsForValue().set(key, value);
+    }
+
+    <span class="hl-kw">public void</span> set(<span class="hl-type">String</span> key, <span class="hl-type">Object</span> value, <span class="hl-kw">long</span> timeoutInSeconds) {
+        redisTemplate.opsForValue().set(key, value, timeoutInSeconds, <span class="hl-type">TimeUnit</span>.SECONDS);
+    }
+
+    <span class="hl-kw">public</span> <span class="hl-type">Object</span> get(<span class="hl-type">String</span> key) {
+        <span class="hl-kw">return</span> redisTemplate.opsForValue().get(key);
+    }
+
+    <span class="hl-kw">public boolean</span> delete(<span class="hl-type">String</span> key) {
+        <span class="hl-kw">return</span> <span class="hl-type">Boolean</span>.TRUE.equals(redisTemplate.delete(key));
+    }
+
+    <span class="hl-kw">public boolean</span> hasKey(<span class="hl-type">String</span> key) {
+        <span class="hl-kw">return</span> <span class="hl-type">Boolean</span>.TRUE.equals(redisTemplate.hasKey(key));
+    }
+}</code></pre>
+
+    <h3>4. Logging-Enabled REST Controller</h3>
+    <span class="badge">RedisController.java</span>
+    <p>Provides API endpoints to GET, SET, and DELETE keys from Redis, complete with SLF4J logging.</p>
+    <pre class="highlight-java"><code><span class="hl-kw">package</span> com.sunrize.it.redis;
+
+<span class="hl-kw">import</span> lombok.extern.slf4j.Slf4j;
+<span class="hl-kw">import</span> org.springframework.beans.factory.annotation.Autowired;
+<span class="hl-kw">import</span> org.springframework.web.bind.annotation.*;
+
+<span class="hl-anno">@Slf4j</span>
+<span class="hl-anno">@RestController</span>
+<span class="hl-anno">@RequestMapping</span>(<span class="hl-str">"/api/redis"</span>)
+<span class="hl-kw">public class</span> <span class="hl-type">RedisController</span> {
+
+    <span class="hl-anno">@Autowired</span>
+    <span class="hl-kw">private</span> <span class="hl-type">RedisService</span> redisService;
+
+    <span class="hl-anno">@PostMapping</span>(<span class="hl-str">"/set"</span>)
+    <span class="hl-kw">public</span> <span class="hl-type">String</span> setKey(
+            <span class="hl-anno">@RequestParam</span> <span class="hl-type">String</span> key,
+            <span class="hl-anno">@RequestParam</span> <span class="hl-type">String</span> value,
+            <span class="hl-anno">@RequestParam</span>(required = <span class="hl-kw">false</span>) <span class="hl-type">Long</span> ttl) {
+        
+        log.info(<span class="hl-str">"Received POST request to set key: '{}' with value: '{}', TTL: {}"</span>, key, value, ttl);
+        
+        <span class="hl-kw">if</span> (ttl != <span class="hl-kw">null</span>) {
+            redisService.set(key, value, ttl);
+            log.debug(<span class="hl-str">"Successfully saved key: '{}' with TTL: {}s"</span>, key, ttl);
+            <span class="hl-kw">return</span> <span class="hl-str">"Key '"</span> + key + <span class="hl-str">"' set with value '"</span> + value + <span class="hl-str">"' and TTL "</span> + ttl + <span class="hl-str">" seconds successfully!"</span>;
+        } <span class="hl-kw">else</span> {
+            redisService.set(key, value);
+            log.debug(<span class="hl-str">"Successfully saved key: '{}' without TTL"</span>, key);
+            <span class="hl-kw">return</span> <span class="hl-str">"Key '"</span> + key + <span class="hl-str">"' set with value '"</span> + value + <span class="hl-str">"' successfully!"</span>;
+        }
+    }
+
+    <span class="hl-anno">@GetMapping</span>(<span class="hl-str">"/get/{key}"</span>)
+    <span class="hl-kw">public</span> <span class="hl-type">Object</span> getKey(<span class="hl-anno">@PathVariable</span> <span class="hl-type">String</span> key) {
+        log.info(<span class="hl-str">"Received GET request to retrieve key: '{}'"</span>, key);
+        
+        <span class="hl-type">Object</span> value = redisService.get(key);
+        <span class="hl-kw">if</span> (value == <span class="hl-kw">null</span>) {
+            log.warn(<span class="hl-str">"Key '{}' was not found in Redis."</span>, key);
+            <span class="hl-kw">return</span> <span class="hl-str">"Key '"</span> + key + <span class="hl-str">"' not found in Redis."</span>;
+        }
+        
+        log.debug(<span class="hl-str">"Retrieved value for key '{}': '{}'"</span>, key, value);
+        <span class="hl-kw">return</span> value;
+    }
+
+    <span class="hl-anno">@DeleteMapping</span>(<span class="hl-str">"/delete/{key}"</span>)
+    <span class="hl-kw">public</span> <span class="hl-type">String</span> deleteKey(<span class="hl-anno">@PathVariable</span> <span class="hl-type">String</span> key) {
+        log.info(<span class="hl-str">"Received DELETE request for key: '{}'"</span>, key);
+        
+        <span class="hl-kw">boolean</span> deleted = redisService.delete(key);
+        <span class="hl-kw">if</span> (deleted) {
+            log.debug(<span class="hl-str">"Successfully deleted key: '{}'", key);</span>
+            <span class="hl-kw">return</span> <span class="hl-str">"Key '"</span> + key + <span class="hl-str">"' deleted successfully."</span>;
+        } <span class="hl-kw">else</span> {
+            log.warn(<span class="hl-str">"Failed to delete key '{}'. Key might not exist."</span>, key);
+            <span class="hl-kw">return</span> <span class="hl-str">"Key '"</span> + key + <span class="hl-str">"' not found or could not be deleted."</span>;
+        }
+    }
+}</code></pre>
+
+    <div class="alert">
+        <strong>⚠️ Spring Tool Suite (STS) Lombok Error Warning:</strong> If STS displays red compiler markers on `@Slf4j` or `log` variables, you must execute the Lombok JAR installer (located at <code>C:\Users\DHRUVA\.m2\repository\org\projectlombok\lombok\1.18.46\lombok-1.18.46.jar</code>), choose your STS execution path, click install, restart the IDE, and run <strong>Project -> Clean</strong>.
+    </div>
+
+    <hr>
+
+    <h2>🛠️ Phase 3: Log4j2 Configuration</h2>
+
+    <h3>1. Log4j2 XML Layout Configuration</h3>
+    <span class="badge">src/main/resources/log4j2-spring.xml</span>
+    <pre class="highlight-xml"><code><span class="hl-xml-tag">&lt;?xml</span> <span class="hl-xml-attr">version</span>=<span class="hl-xml-val">"1.0"</span> <span class="hl-xml-attr">encoding</span>=<span class="hl-xml-val">"UTF-8"</span><span class="hl-xml-tag">?&gt;</span>
+<span class="hl-xml-tag">&lt;Configuration</span> <span class="hl-xml-attr">status</span>=<span class="hl-xml-val">"WARN"</span><span class="hl-xml-tag">&gt;</span>
+    <span class="hl-xml-tag">&lt;Properties&gt;</span>
+        <span class="hl-xml-tag">&lt;Property</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"LOG_DIR"</span><span class="hl-xml-tag">&gt;</span>${sys:LOG_PATH:-./logs}<span class="hl-xml-tag">&lt;/Property&gt;</span>
+        <span class="hl-xml-tag">&lt;Property</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"LOG_FILE_NAME"</span><span class="hl-xml-tag">&gt;</span>techstackservice<span class="hl-xml-tag">&lt;/Property&gt;</span>
+    <span class="hl-xml-tag">&lt;/Properties&gt;</span>
+    
+    <span class="hl-xml-tag">&lt;Appenders&gt;</span>
+        <span class="hl-xml-tag">&lt;Console</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"Console"</span> <span class="hl-xml-attr">target</span>=<span class="hl-xml-val">"SYSTEM_OUT"</span><span class="hl-xml-tag">&gt;</span>
+            <span class="hl-xml-tag">&lt;PatternLayout</span> <span class="hl-xml-attr">pattern</span>=<span class="hl-xml-val">"%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"</span><span class="hl-xml-tag">/&gt;</span>
+        <span class="hl-xml-tag">&lt;/Console&gt;</span>
+        
+        <span class="hl-xml-tag">&lt;RollingFile</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"RollingFile"</span> 
+                     <span class="hl-xml-attr">fileName</span>=<span class="hl-xml-val">"${LOG_DIR}/${LOG_FILE_NAME}.log"</span> 
+                     <span class="hl-xml-attr">filePattern</span>=<span class="hl-xml-val">"${LOG_DIR}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz"</span><span class="hl-xml-tag">&gt;</span>
+            <span class="hl-xml-tag">&lt;PatternLayout</span> <span class="hl-xml-attr">pattern</span>=<span class="hl-xml-val">"%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"</span><span class="hl-xml-tag">/&gt;</span>
+            <span class="hl-xml-tag">&lt;Policies&gt;</span>
+                <span class="hl-xml-tag">&lt;TimeBasedTriggeringPolicy</span> <span class="hl-xml-attr">interval</span>=<span class="hl-xml-val">"1"</span> <span class="hl-xml-attr">modulate</span>=<span class="hl-xml-val">"true"</span><span class="hl-xml-tag">/&gt;</span>
+                <span class="hl-xml-tag">&lt;SizeBasedTriggeringPolicy</span> <span class="hl-xml-attr">size</span>=<span class="hl-xml-val">"10 MB"</span><span class="hl-xml-tag">/&gt;</span>
+            <span class="hl-xml-tag">&lt;/Policies&gt;</span>
+            <span class="hl-xml-tag">&lt;DefaultRolloverStrategy</span> <span class="hl-xml-attr">max</span>=<span class="hl-xml-val">"10"</span><span class="hl-xml-tag">/&gt;</span>
+        <span class="hl-xml-tag">&lt;/RollingFile&gt;</span>
+    <span class="hl-xml-tag">&lt;/Appenders&gt;</span>
+    
+    <span class="hl-xml-tag">&lt;Loggers&gt;</span>
+        <span class="hl-xml-tag">&lt;Root</span> <span class="hl-xml-attr">level</span>=<span class="hl-xml-val">"INFO"</span><span class="hl-xml-tag">&gt;</span>
+            <span class="hl-xml-tag">&lt;AppenderRef</span> <span class="hl-xml-attr">ref</span>=<span class="hl-xml-val">"Console"</span><span class="hl-xml-tag">/&gt;</span>
+            <span class="hl-xml-tag">&lt;AppenderRef</span> <span class="hl-xml-attr">ref</span>=<span class="hl-xml-val">"RollingFile"</span><span class="hl-xml-tag">/&gt;</span>
+        <span class="hl-xml-tag">&lt;/Root&gt;</span>
+        
+        <span class="hl-xml-tag">&lt;Logger</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"com.sunrize.it"</span> <span class="hl-xml-attr">level</span>=<span class="hl-xml-val">"DEBUG"</span> <span class="hl-xml-attr">additivity</span>=<span class="hl-xml-val">"false"</span><span class="hl-xml-tag">&gt;</span>
+            <span class="hl-xml-tag">&lt;AppenderRef</span> <span class="hl-xml-attr">ref</span>=<span class="hl-xml-val">"Console"</span><span class="hl-xml-tag">/&gt;</span>
+            <span class="hl-xml-tag">&lt;AppenderRef</span> <span class="hl-xml-attr">ref</span>=<span class="hl-xml-val">"RollingFile"</span><span class="hl-xml-tag">/&gt;</span>
+        <span class="hl-xml-tag">&lt;/Logger&gt;</span>
+    <span class="hl-xml-tag">&lt;/Loggers&gt;</span>
+<span class="hl-xml-tag">&lt;/Configuration&gt;</span></code></pre>
+
+    <hr>
+
+    <h2>🐳 Phase 4: Dockerization</h2>
+
+    <h3>1. Dockerfile</h3>
+    <span class="badge">Dockerfile</span>
+    <p>Leverages JRE 21 and overrides Log4j2's default path to point to <code>/app/logs</code> internally.</p>
+    <pre><code># Use JRE 21 alpine image
+FROM eclipse-temurin:21-jre-alpine
+
+# Set directory inside the container
+WORKDIR /app
+
+# Copy the built maven WAR file
+COPY target/techstackservice-0.0.1.war app.war
+
+# Expose HTTP port
+EXPOSE 8080
+
+# Run Spring Boot and configure the log directory inside the container
+ENTRYPOINT ["java", "-DLOG_PATH=/app/logs", "-jar", "app.war"]</code></pre>
+
+    <h3>2. Build Local Image Command</h3>
+    <pre><code># Package war file
+mvnw clean package -DskipTests
+
+# Build Docker image
+docker build -t techstackservice:1.0 .</code></pre>
+
+    <hr>
+
+    <h2>☸️ Phase 5: Kubernetes Manifests</h2>
+    <p>Configured under the folder <code>k8s/</code>.</p>
+
+    <h3>1. Redis Manifest</h3>
+    <span class="badge">k8s/redis-k8s.yaml</span>
+    <pre class="highlight-xml"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379</code></pre>
+
+    <h3>2. Application Manifest</h3>
+    <span class="badge">k8s/app-k8s.yaml</span>
+    <p>Maps <code>/app/logs</code> inside the container to the host path <code>/data/logs</code> inside Minikube.</p>
+    <pre class="highlight-xml"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: techstackservice-deployment
+  labels:
+    app: techstackservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: techstackservice
+  template:
+    metadata:
+      labels:
+        app: techstackservice
+    spec:
+      containers:
+      - name: techstackservice
+        image: techstackservice:1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATA_REDIS_HOST
+          value: "redis-service"
+        - name: SPRING_DATA_REDIS_PORT
+          value: "6379"
+        volumeMounts:
+        - name: log-volume
+          mountPath: /app/logs
+      volumes:
+      - name: log-volume
+        hostPath:
+          path: /data/logs
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: techstackservice-service
+spec:
+  type: NodePort
+  selector:
+    app: techstackservice
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080</code></pre>
+
+    <hr>
+
+    <h2>🏃‍♀️ Phase 6: Startup & Deployment Workflow (From Stopped State)</h2>
+    <p>Follow these steps exactly to start the infrastructure, clear stale caches, mount host directories, and route endpoints.</p>
+
+    <h3>Step 1: Start Infrastructure</h3>
+    <pre><code># 1. Start Docker Desktop from Windows Start Menu
+# 2. Wait for green "Engine Running" status
+# 3. Start the Minikube cluster
+minikube start</code></pre>
+
+    <h3>Step 2: Clear Minikube Cached Image & Load Fresh Image</h3>
+    <div class="alert alert-info">
+        <strong>💡 Note:</strong> If you rebuild your image locally on Windows, Minikube will still run its cached version unless you force delete it.
+    </div>
+    <pre><code># 1. Delete the app resources so the image is not in use
+kubectl delete -f k8s/app-k8s.yaml
+
+# 2. Delete the old image from Minikube cache
+minikube image rm techstackservice:1.0
+
+# 3. Load the newly built image
+minikube image load techstackservice:1.0
+
+# 4. Redeploy the app manifest
+kubectl apply -f k8s/app-k8s.yaml</code></pre>
+
+    <h3>Step 3: Setup Directory Mounting</h3>
+    <p>Link the Windows folder <code>D:\GIT\logs</code> to the Minikube directory <code>/data/logs</code>. Open a **new terminal** and run:</p>
+    <pre><code>minikube mount "D:\GIT\logs:/data/logs"</code></pre>
+    <div class="alert">
+        <strong>⚠️ Crucial Ordering Rule:</strong> If the pod started *before* running the mount tunnel, it will write to Minikube's local disk. You must run <code>kubectl rollout restart deployment/techstackservice-deployment</code> to trigger a restart while the mount is running.
+    </div>
+
+    <h3>Step 4: Expose Service Tunnel</h3>
+    <p>Open **another separate terminal** and run:</p>
+    <pre><code>minikube service techstackservice-service</code></pre>
+    <p>Take note of the active tunnel port (e.g. <code>61225</code>).</p>
+
+    <hr>
+
+    <h2>🧪 Verification & Testing Commands</h2>
+
+    <h3>1. Trigger Write API (POST Request)</h3>
+    <p>Replace <code>PORT</code> with the tunnel port generated by Minikube:</p>
+    <p><strong>PowerShell:</strong></p>
+    <pre><code>Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:PORT/api/redis/set?key=k8sKey&value=HelloFromKubernetes"</code></pre>
+
+    <h3>2. Trigger Read API (GET Request)</h3>
+    <p>Navigate in browser or call in PowerShell:</p>
+    <pre><code>Invoke-RestMethod -Uri "http://127.0.0.1:PORT/api/redis/get/k8sKey"</code></pre>
+
+    <h3>3. Check Live Logs</h3>
+    <p>Stream logs in Windows PowerShell:</p>
+    <pre><code>Get-Content -Path "D:\GIT\logs\techstackservice.log" -Wait -Tail 15</code></pre>
+    <p>Stream console logs in Kubernetes:</p>
+    <pre><code>kubectl logs -f deployment/techstackservice-deployment</code></pre>
+
+</body>
+</html>
