@@ -1,0 +1,44 @@
+# Git Cheat Sheet & Commands Reference Guide
+
+Here is the description and usage of the Git commands listed in this reference:
+
+--------------------------------------------------------------------------------
+
+1. git clone -b <branch_name> <repository_url>
+   Description: Clones (downloads) only a specific branch from a remote repository (like GitHub) to your local machine, instead of downloading the default branch.
+   Example: git clone -b develop https://github.com/user/repo.git
+
+2. git branch
+   Description: Lists all the local branches in your repository. Your current active branch will be highlighted (usually in green) and marked with an asterisk (*).
+
+3. git branch --show-current
+   Description: Prints only the name of the current active branch you are working on.
+
+4. git status
+   Description: Shows the state of your working directory. It lists which files have been modified, deleted, staged (ready to commit), or are currently untracked by Git.
+
+5. git checkout -b <new_branch_name>
+   Description: Creates a new local branch with the specified name and immediately switches your workspace to it.
+   Example: git checkout -b develop
+
+6. git push -u origin <branch_name>
+   Description: Pushes a newly created local branch to the remote repository (origin) for the first time and sets up upstream tracking so you can just use "git push" or "git pull" in the future.
+   Example: git push -u origin develop
+
+7. git switch <branch_name>
+   Description: Switches from your current branch to an existing local branch. (This is a modern, simpler alternative to "git checkout").
+   Example: git switch develop
+
+8. git add .
+   Description: Stages all new, modified, and deleted files in the current directory and its subdirectories, preparing them to be committed.
+
+9. git commit -m "commit message"
+   Description: Saves your staged changes locally as a snapshot in history, with a descriptive message explaining the changes.
+   Example: git commit -m "feat: configure Log4j2 file logging"
+
+10. git push
+    Description: Uploads all your local committed changes from your active branch to the remote repository (GitHub).
+
+11. git checkout <branch_or_file>
+    Description: Multi-purpose command. Used to switch to an existing branch (like git switch) or discard local unstaged changes in a file (git restore).
+    Example: git checkout main  (or)  git checkout pom.xml
