@@ -145,3 +145,118 @@ Step 4: Check the Console Consumer
 Check the terminal window from Step 1. You should see the message: HelloLocalKafka appear on the screen!
 
 Give this a run and let me know if the message pops up in your console consumer terminal!
+
+
+
+
+
+Consumer
+
+Now, let's finish the Consumer side in your other project, techstackservicecon.
+
+To set up the Consumer project:
+
+Step 1: Add the Dependency
+Open the pom.xml of the techstackservicecon project and add this dependency inside <dependencies>:
+
+
+
+
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-kafka</artifactId>
+</dependency>
+
+Step 2: Configure Properties
+Open src/main/resources/application.properties in techstackservicecon and add these settings. (Notice that we are running the Consumer on port 8081 so it doesn't conflict with your Producer running on 8080):
+
+# Run the consumer on a different port
+server.port=8081
+
+# Kafka Broker Address
+spring.kafka.bootstrap-servers=localhost:9092
+
+# Consumer Group ID (Kafka uses this to coordinate messages)
+spring.kafka.consumer.group-id=practice-group
+
+# Deserializers (Must match the Producer's String Serializer)
+spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.consumer.value-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+
+# Custom property matching the Producer's topic name
+app.kafka.topic=practice-topic
+Step 3: Create the Consumer Service Class
+In your techstackservicecon project, create a file named KafkaConsumerService.java inside the src/main/java/com/sunrize/it/kafka/ directory:
+
+
+package com.sunrize.it.kafka;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+@Service
+public class KafkaConsumerService {
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaConsumerService.class);
+
+    /**
+     * Listen to the Kafka topic and print received messages.
+     */
+    @KafkaListener(topics = "${app.kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
+    public void consumeMessage(String message) {
+        log.info(">>>> [KAFKA CONSUMER] Successfully received message: '{}'", message);
+    }
+}
+
+
+Step 4: Run and Test
+1.Start the techstackservicecon application (which will run on port 8081).
+2.Make sure your techstackservice (Producer on 8080) is still running.
+3.Open your browser and send a new message: 👉 http://localhost:8080/api/kafka/publish?message=HelloToConsumerService
+4.Open the console logs of your Consumer (techstackservicecon) application. You should see the line appear: >>>> [KAFKA CONSUMER] Successfully received message: 'HelloToConsumerService'
+5.Let me know once you have configured, started your Consumer application, and tested the integration!
+
+
+
+Congratulations! You have successfully implemented a complete Event-Driven Microservices Architecture using Apache Kafka!
+
+Your Spring Boot Producer on port 8080 is publishing messages, and your Spring Boot Consumer on port 8081 is listening and receiving those messages in real-time.
+
+To help you remember this setup, I will create a dedicated guide for Kafka. I'll save it directly in your project root folder:
+
+HTML Print-Ready Version: D:\GIT\Microservices\techstackservice\kafka_practice_guide.html
+Markdown Version: D:\GIT\Microservices\techstackservice\kafka_practice_guide.md
+Let's write the HTML version first.
+
+
+suppose producer service is sent a message but cosumer service will down what will happen?
+
+This is one of the most powerful features of Apache Kafka (called Durability and Asynchronous Decoupling).
+
+Here is what happens when the Consumer service goes down:
+
+1. The Producer still succeeds:
+Because the Producer and Consumer are completely decoupled, the Producer does not care if the Consumer is alive or dead. The Producer sends the message directly to the Kafka Broker (Docker), and Kafka saves it successfully.
+
+2. Kafka stores the messages on disk:
+Kafka stores the messages in its commit log on disk for a configured retention period (by default, Kafka keeps messages for 7 days). The messages are safe and will not be lost.
+
+3. The Consumer catches up upon starting (Offsets/Bookmarks):
+Kafka keeps track of a "bookmark" (called an Offset) for each Consumer Group (our practice-group).
+
+While your Consumer is down, its offset stays at the last read message.
+The moment your Consumer starts back up, it asks Kafka: "Are there any new messages since my last bookmark?"
+Kafka sends all the missed messages to the Consumer, and the Consumer processes them in the exact order they were received!
+🧪 Test this live right now!
+You can see this in action in 2 minutes:
+
+Stop your Consumer application (techstackservicecon on port 8081).
+Keep your Producer application (techstackservice on port 8080) running.
+Open your browser and publish a message: 👉 http://localhost:8080/api/kafka/publish?message=MessageWhileConsumerWasOffline (Notice that the webpage still returns "published successfully!" because Kafka received it).
+Wait 30 seconds.
+Start your Consumer application again.
+Watch the Consumer's console logs: the moment it boots up, you will instantly see it print: >>>> [KAFKA CONSUMER] Successfully received message: 'MessageWhileConsumerWasOffline'
+Give this test a run and watch the magic of Kafka's durability!

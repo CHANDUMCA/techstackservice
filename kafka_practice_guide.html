@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot + Apache Kafka: Event-Driven Microservices Reference Guide</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #24292f;
+            --primary-color: #0969da;
+            --border-color: #d0d7de;
+            --code-bg: #f6f8fa;
+            --badge-bg: #ddf4ff;
+            --badge-text: #0969da;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            color: #1f2328;
+        }
+
+        h2 {
+            font-size: 1.6em;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        h3 {
+            font-size: 1.25em;
+            color: #1f2328;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        p, li {
+            color: #24292f;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 85%;
+            background-color: var(--code-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            color: #cf222e;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: auto;
+            margin: 12px 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 90%;
+            color: #24292f;
+        }
+
+        .alert {
+            background-color: #fff8c5;
+            border: 1px solid #d4a72c;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            color: #765a00;
+        }
+
+        .alert-info {
+            background-color: #ddf4ff;
+            border: 1px solid #54aeff;
+            color: #0969da;
+        }
+
+        .badge {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .roadmap-card {
+            background-color: #f6f8fa;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .roadmap-title {
+            margin-top: 0;
+            color: #1f2328;
+            font-weight: bold;
+            font-size: 1.2em;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        ol, ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* Syntax Highlighting CSS */
+        .hl-kw { color: #d73a49; font-weight: bold; }
+        .hl-type { color: #6f42c1; }
+        .hl-str { color: #032f62; }
+        .hl-cmt { color: #6a737d; font-style: italic; }
+        .hl-anno { color: #e36209; }
+
+        @media print {
+            body {
+                margin: 20px;
+                max-width: 100%;
+                font-size: 13px;
+            }
+            pre {
+                page-break-inside: avoid;
+                word-wrap: break-word;
+                white-space: pre-wrap;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            .roadmap-card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Spring Boot + Apache Kafka<br>Event-Driven Microservices Reference Guide</h1>
+
+    <div class="alert alert-info">
+        <strong>💡 Note:</strong> This guide documents how to configure a decoupled multi-service communication flow where the <code>techstackservice</code> project publishes events to Kafka, and the <code>techstackservicecon</code> project consumes events.
+    </div>
+
+    <div class="roadmap-card">
+        <h3 class="roadmap-title">🗺️ Kafka Project Architecture</h3>
+        <p><strong>Decoupled Communication Design:</strong></p>
+        <ul>
+            <li><strong>Broker (Kafka Cluster):</strong> Runs in a local Docker container on port <code>9092</code>.</li>
+            <li><strong>Producer (<code>techstackservice</code>):</strong> Runs on port <code>8080</code>. Exposes an API endpoint to accept string payloads and publishes them to a Kafka topic.</li>
+            <li><strong>Consumer (<code>techstackservicecon</code>):</strong> Runs on port <code>8081</code>. Subscribes to the Kafka topic using a listener, consuming and logging messages automatically.</li>
+        </ul>
+    </div>
+
+    <h2>📋 Prerequisites</h2>
+    <ul>
+        <li><strong>Docker Desktop</strong> running on Windows.</li>
+        <li><strong>Apache Kafka Container</strong> running in Docker on port <code>9092</code>.
+            <pre><code>docker run -d --name local-kafka -p 9092:9092 apache/kafka:latest</code></pre>
+        </li>
+    </ul>
+
+    <hr>
+
+    <h2>🚀 Part 1: Producer Application (techstackservice)</h2>
+
+    <h3>1. Maven Dependency</h3>
+    <p>Include the Spring Boot Kafka Starter (with Logback logging excluded to prevent conflicts with Log4j2):</p>
+    <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-kafka&lt;/artifactId&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-logging&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;</code></pre>
+
+    <h3>2. Producer Configurations (application.properties)</h3>
+    <pre><code>spring.application.name=techstackservice
+
+# Kafka Broker address
+spring.kafka.bootstrap-servers=localhost:9092
+
+# Serializers for converting key/value strings into bytes
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.StringSerializer
+
+# Custom Topic name
+app.kafka.topic=practice-topic</code></pre>
+
+    <h3>3. Producer Service Class</h3>
+    <span class="badge">KafkaProducerService.java</span>
+    <pre class="highlight-java"><code><span class="hl-kw">package</span> com.sunrize.it.kafka;
+
+<span class="hl-kw">import</span> lombok.extern.slf4j.Slf4j;
+<span class="hl-kw">import</span> org.springframework.beans.factory.annotation.Autowired;
+<span class="hl-kw">import</span> org.springframework.beans.factory.annotation.Value;
+<span class="hl-kw">import</span> org.springframework.kafka.core.KafkaTemplate;
+<span class="hl-kw">import</span> org.springframework.stereotype.Service;
+
+<span class="hl-anno">@Slf4j</span>
+<span class="hl-anno">@Service</span>
+<span class="hl-kw">public class</span> <span class="hl-type">KafkaProducerService</span> {
+
+    <span class="hl-anno">@Autowired</span>
+    <span class="hl-kw">private</span> <span class="hl-type">KafkaTemplate</span>&lt;<span class="hl-type">String</span>, <span class="hl-type">String</span>&gt; kafkaTemplate;
+
+    <span class="hl-anno">@Value</span>(<span class="hl-str">"${app.kafka.topic}"</span>)
+    <span class="hl-kw">private</span> <span class="hl-type">String</span> topicName;
+
+    <span class="hl-kw">public void</span> sendMessage(<span class="hl-type">String</span> message) {
+        log.info(<span class="hl-str">"Sending message to Kafka Topic '{}': {}"</span>, topicName, message);
+        kafkaTemplate.send(topicName, message);
+        log.debug(<span class="hl-str">"Message sent successfully to topic: {}"</span>, topicName);
+    }
+}</code></pre>
+
+    <h3>4. REST Controller</h3>
+    <span class="badge">KafkaController.java</span>
+    <pre class="highlight-java"><code><span class="hl-kw">package</span> com.sunrize.it.kafka;
+
+<span class="hl-kw">import</span> lombok.extern.slf4j.Slf4j;
+<span class="hl-kw">import</span> org.springframework.beans.factory.annotation.Autowired;
+<span class="hl-kw">import</span> org.springframework.web.bind.annotation.*;
+
+<span class="hl-anno">@Slf4j</span>
+<span class="hl-anno">@RestController</span>
+<span class="hl-anno">@RequestMapping</span>(<span class="hl-str">"/api/kafka"</span>)
+<span class="hl-kw">public class</span> <span class="hl-type">KafkaController</span> {
+
+    <span class="hl-anno">@Autowired</span>
+    <span class="hl-kw">private</span> <span class="hl-type">KafkaProducerService</span> producerService;
+
+    <span class="hl-anno">@PostMapping</span>(<span class="hl-str">"/publish"</span>)
+    <span class="hl-kw">public</span> <span class="hl-type">String</span> publishMessage(<span class="hl-anno">@RequestParam</span> <span class="hl-type">String</span> message) {
+        log.info(<span class="hl-str">"Received POST request to publish message to Kafka: '{}'"</span>, message);
+        producerService.sendMessage(message);
+        <span class="hl-kw">return</span> <span class="hl-str">"Message '"</span> + message + <span class="hl-str">"' published to Kafka successfully!"</span>;
+    }
+
+    <span class="hl-anno">@GetMapping</span>(<span class="hl-str">"/publish"</span>)
+    <span class="hl-kw">public</span> <span class="hl-type">String</span> publishMessageGet(<span class="hl-anno">@RequestParam</span> <span class="hl-type">String</span> message) {
+        log.info(<span class="hl-str">"Received GET request to publish message to Kafka: '{}'"</span>, message);
+        producerService.sendMessage(message);
+        <span class="hl-kw">return</span> <span class="hl-str">"Message '"</span> + message + <span class="hl-str">"' published to Kafka successfully!"</span>;
+    }
+}</code></pre>
+
+    <hr>
+
+    <h2>🛰️ Part 2: Consumer Application (techstackservicecon)</h2>
+
+    <h3>1. Maven Dependency</h3>
+    <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-kafka&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+
+    <h3>2. Consumer Configurations (application.properties)</h3>
+    <pre><code># Run on a different port to avoid conflicts
+server.port=8081
+
+# Kafka Broker address
+spring.kafka.bootstrap-servers=localhost:9092
+
+# Consumer Group ID
+spring.kafka.consumer.group-id=practice-group
+
+# Deserializers to convert bytes back to String objects
+spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.consumer.value-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+
+# Matching Topic Name
+app.kafka.topic=practice-topic</code></pre>
+
+    <h3>3. Listener Service</h3>
+    <span class="badge">KafkaConsumerService.java</span>
+    <pre class="highlight-java"><code><span class="hl-kw">package</span> com.sunrize.it.kafka;
+
+<span class="hl-kw">import</span> org.slf4j.Logger;
+<span class="hl-kw">import</span> org.slf4j.LoggerFactory;
+<span class="hl-kw">import</span> org.springframework.kafka.annotation.KafkaListener;
+<span class="hl-kw">import</span> org.springframework.stereotype.Service;
+
+<span class="hl-anno">@Service</span>
+<span class="hl-kw">public class</span> <span class="hl-type">KafkaConsumerService</span> {
+
+    <span class="hl-kw">private static final</span> <span class="hl-type">Logger</span> log = <span class="hl-type">LoggerFactory</span>.getLogger(<span class="hl-type">KafkaConsumerService</span>.class);
+
+    <span class="hl-anno">@KafkaListener</span>(topics = <span class="hl-str">"${app.kafka.topic}"</span>, groupId = <span class="hl-str">"${spring.kafka.consumer.group-id}"</span>)
+    <span class="hl-kw">public void</span> consumeMessage(<span class="hl-type">String</span> message) {
+        log.info(<span class="hl-str">"&gt;&gt;&gt;&gt; [KAFKA CONSUMER] Successfully received message: '{}'"</span>, message);
+    }
+}</code></pre>
+
+    <hr>
+
+    <h2>🧪 Verification & Testing</h2>
+
+    <h3>1. Command-Line Consumer Verification (Direct Docker CLI)</h3>
+    <p>Before launching the Spring Boot consumer service, verify the producer by streaming messages directly from the container:</p>
+    <pre><code>docker exec -it kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic practice-topic --from-beginning</code></pre>
+
+    <h3>2. Decoupled Service Integration Testing</h3>
+    <ol>
+        <li>Start your <strong>Producer</strong> app on port <code>8080</code> (<code>techstackservice</code>).</li>
+        <li>Start your <strong>Consumer</strong> app on port <code>8081</code> (<code>techstackservicecon</code>).</li>
+        <li>Trigger the HTTP GET publishing URL in your browser:
+            👉 <strong><a href="http://localhost:8080/api/kafka/publish?message=HelloToConsumerService" target="_blank">http://localhost:8080/api/kafka/publish?message=HelloToConsumerService</a></strong>
+        </li>
+        <li>Inspect the console logs of the **Consumer** application on port <code>8081</code>. You will see:
+            <pre><code>>>>> [KAFKA CONSUMER] Successfully received message: 'HelloToConsumerService'</code></pre>
+        </li>
+    </ol>
+
+</body>
+</html>
